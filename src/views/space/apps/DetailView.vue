@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { get } from '@/utils/request.ts'
+import { post } from '@/utils/request.ts'
 
 async function debug() {
-  const appId = '227ecfad-4014-4776-88d6-719c07fc5090'
-  const response = await get(`/app/${appId}`)
+  const response = await post(`/apps/710e3470-067f-4e85-be54-5552ec2c9788/debug`, {
+    body: { query: '你好，你是谁' },
+  })
   console.log(response)
 }
 </script>
