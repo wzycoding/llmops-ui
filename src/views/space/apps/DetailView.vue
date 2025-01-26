@@ -2,49 +2,45 @@
 // 1.定义交互所需的数据
 import { ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
-import { post } from '@/utils/request.ts'
+import { debugApp } from '@/services/app.ts'
+import { useRoute } from 'vue-router'
 
 const query = ref('')
 const messages = ref<any[]>([])
 const isLoading = ref(false)
+const route = useRoute()
 
-function clearMessages() {
+const clearMessages = () => {
   messages.value = []
 }
 
-async function send() {
-  // 1.获取用户输入的数据，并校验是否存在
+const send = async () => {
   if (!query.value) {
     Message.error('用户提问不能为空')
     return
   }
-  // 2.当上一条请求还没有结束的时候，不允许发起新请求
   if (isLoading.value) {
     Message.warning('上一次恢复还未结束, 请稍等')
     return
   }
-  // 3.提取用户的输入信息
-  const humanQuery = query.value
-  messages.value.push({
-    role: 'human',
-    content: humanQuery,
-  })
 
-  // 4.清除输入框
-  query.value = ''
-
-  // 5.发起API请求
-  isLoading.value = true
-  const response = await post('/apps/710e3470-067f-4e85-be54-5552ec2c9788/debug', {
-    body: { query: humanQuery },
-  })
-  const content = response.data.content
-
-  messages.value.push({
-    role: 'ai',
-    content: content,
-  })
-  isLoading.value = false
+  try {
+    const humanQuery = query.value
+    messages.value.push({
+      role: 'human',
+      content: humanQuery,
+    })
+    query.value = ''
+    isLoading.value = true
+    const response = await debugApp(route.params.app_id as string, humanQuery)
+    const { content } = response.data
+    messages.value.push({
+      role: 'ai',
+      content: content,
+    })
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 
